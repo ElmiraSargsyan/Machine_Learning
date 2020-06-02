@@ -114,17 +114,15 @@ class DecisionTree:
 
         impurity = self.criterion(labels)
         best_column, best_value = None, None
-
-        min_criterion = 1.0
-        
+      
         for column, column_values in enumerate(data.T):
             for split_value in np.arange(
                     min(column_values), max(column_values),
                     (max(column_values) - min(column_values)) / 50):
                 # find optimal way of splitting the data
                 
-                left_labels = [label for value, label in zip(column_values, labels) if value < split_value]
-                right_labels = [label for value, label in zip(column_values, labels) if value >= split_value]
+                left_labels = labels[column_values <  split_value]
+                right_labels = labels[column_values >=  split_value]
                 
                 left_criterion = self.criterion(left_labels)
                 right_criterion = self.criterion(right_labels)
@@ -132,10 +130,10 @@ class DecisionTree:
                 criterion =  (left_criterion*len(left_labels) + right_criterion*len(right_labels)) / len(labels)
                 
                 if criterion < impurity: 
-                    if criterion < min_criterion:   
-                        min_criterion = criterion
-                        best_column = column
-                        best_value = split_value
+                
+                    impurity = criterion
+                    best_column = column
+                    best_value = split_value
                         
         if best_column is None or current_depth == self.max_depth:
             
@@ -144,11 +142,11 @@ class DecisionTree:
         else:
         
             # return DecisionNode with true(false)_branch=self._iterate(...)
-            left = [row  for row in data if row[best_column] < best_value]
-            left_labels = [label  for row, label in zip(data, labels) if row[best_column] < best_value]
+            left = data[(data[:, [best_column]]).flatten() <  best_value]
+            left_labels = labels[(data[:, [best_column]]).flatten() <  best_value]
             
-            right = [row  for row in data if row[best_column] >= best_value]
-            right_labels = [label  for row, label in zip(data, labels) if row[best_column] >= best_value]
+            right = data[(data[:, [best_column]]).flatten() >=  best_value]
+            right_labels = labels[(data[:, [best_column]]).flatten() >=  best_value]
             
             return DecisionNode(data, labels, column = best_column, value = best_value, 
                                 true_branch =  self._iterate(np.array(left), np.array(left_labels), current_depth = current_depth + 1), 
@@ -159,6 +157,7 @@ class DecisionTree:
         self.tree = self._iterate(data, labels)
 
     def predict(self, point: np.ndarray) -> float or int:
+    
         """
         This method iterates nodes starting with the first node i. e.
         self.tree. Returns predicted label of a given point (example [2.5, 6],
