@@ -1,4 +1,4 @@
-# ML101 Practial 2 - Earthquake destruction prediction
+# Earthquake destruction prediction
 
 ## The data
 
